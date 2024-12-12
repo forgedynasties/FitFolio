@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: com.github.parse-community.Parse-SDK-Android:bolts-tasks:1.25.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="com.github.parse-community.Parse-SDK-Android" artifactId="bolts-tasks" version="1.25.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.parse-community.Parse-SDK-Android/bolts-tasks/1.25.0/dfffd9b6e9eb08570e2bca0a69bc63559386ee0f/bolts-tasks-1.25.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.parse-community.Parse-SDK-Android/bolts-tasks/1.25.0/45dac33797ecd2b866451fb3cc3283fbe7ac763b/bolts-tasks-1.25.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.parse-community.Parse-SDK-Android/bolts-tasks/1.25.0/3a5bf4e4145fea009d322612bddfbdc62443e654/bolts-tasks-1.25.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
