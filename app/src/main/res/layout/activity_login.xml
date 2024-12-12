@@ -14,7 +14,7 @@
         android:layout_width="77dp"
         android:layout_height="77dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="65dp"
         android:src="@drawable/icons8_dumbbell_64" />
 
     <TextView
