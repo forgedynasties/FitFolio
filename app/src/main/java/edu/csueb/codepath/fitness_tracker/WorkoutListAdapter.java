@@ -15,7 +15,7 @@ import java.util.List;
 import edu.csueb.codepath.fitness_tracker.fragments.TrackFragment;
 
 public class WorkoutListAdapter extends RecyclerView.Adapter<WorkoutListAdapter.ViewHolder> {
-
+//
     public interface OnClickListener {
         void onItemClicked(int position);
     }
