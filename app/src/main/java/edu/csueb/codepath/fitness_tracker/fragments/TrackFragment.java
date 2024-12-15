@@ -68,7 +68,7 @@ public class TrackFragment extends Fragment {
                 //selected = workoutListAdapter.getChecked();
                 String str = join(", ", selected);
                  */
-                selected = workoutListAdapter.getChecked();
+                selected = workoutListAdapter.getCheckedWorkouts();
                 Log.i(TAG, Arrays.toString(selected.toArray()));
                 if(selected.size() > 0){
                     Intent i = new Intent(getActivity(), workout_timer.class);

@@ -1,11 +1,9 @@
 package edu.csueb.codepath.fitness_tracker;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -14,198 +12,163 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
-import org.w3c.dom.Text;
+import com.blogspot.atifsoftwares.animatoolib.Animatoo;
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import com.blogspot.atifsoftwares.animatoolib.Animatoo;
-import com.parse.ParseException;
-import com.parse.ParseFile;
-import com.parse.ParseObject;
-import com.parse.ParseQuery;
-import com.parse.ParseRelation;
-import com.parse.SaveCallback;
-
 public class workout_timer extends FragmentActivity {
-    private String TAG = "workout_timer";
+
+    private static final String TAG = "WorkoutTimer";
     private Chronometer chronometer;
-    private boolean running;
-    private boolean started;
-    private Button start_stop;
-    private Button reset;
-    private Button finishWorkout;
+    private boolean isRunning;
+    private boolean isStarted;
+    private Button btnStartStop;
+    private Button btnReset;
+    private Button btnFinishWorkout;
     private long pauseOffset;
-    private int currentTime;    //will be used to store the current time on the chronometer
-    public List<String> workouts;
+    private int elapsedTimeSeconds;
+    private List<String> workouts;
     private TextView workoutTitle;
-    private Date startTime;    //stores the date, and time of the started workout
-    private Date finishTime;   //stores the date and time of the finished workout
+    private Date startTime;
+    private Date finishTime;
     private ProgressBar progressBar;
-
-
-
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.workout_timer);
-        SimpleDateFormat dtf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
-        chronometer = (Chronometer) findViewById(R.id.timer);
-        //chronometer.setFormat("HH:MM:SS");
+        initializeViews();
+        setupWorkoutList();
 
-        start_stop = (Button) findViewById(R.id.btnStart_stop);
-        reset = (Button) findViewById(R.id.btnReset);
-        finishWorkout = (Button) findViewById(R.id.btnFinish);
-        workoutTitle = (TextView) findViewById(R.id.tvWorkoutList);
-        progressBar = findViewById(R.id.circleProgress);
-        running = false;
-        started = false;
-        long elapsedMillis = SystemClock.elapsedRealtime()
-                - chronometer.getBase();
+        btnStartStop.setOnClickListener(v -> toggleTimer());
+        btnReset.setOnClickListener(v -> resetTimer());
+        btnFinishWorkout.setOnClickListener(v -> finishWorkout());
 
-        workouts = (List<String>) getIntent().getSerializableExtra("Workout");
-        Log.e(TAG, Arrays.toString(workouts.toArray()));
-        String workouttitle = Arrays.toString(workouts.toArray());
-        workoutTitle.setText(workouttitle);
-
-        start_stop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startStopTimer(v, dtf);
-            }
-        });
-
-        reset.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                resetTimer(v);
-            }
-        });
-
-        finishWorkout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finishWorkout(v);
-            }
-        });
-
-        chronometer.setOnChronometerTickListener(new Chronometer.OnChronometerTickListener() {
-            @Override
-            public void onChronometerTick(Chronometer chronometer) {
-                Log.i(TAG, String.valueOf(SystemClock.elapsedRealtime() - chronometer.getBase()));
-                long elapsedMillis = SystemClock.elapsedRealtime()
-                        - chronometer.getBase();
-                Log.e(TAG, String.valueOf((Math.round(elapsedMillis/1000))));
-                int timerSeconds = Math.round(elapsedMillis/1000);
-                int finalTimerSeconds = 0;
-                if(timerSeconds > 60){
-                    finalTimerSeconds = timerSeconds % 60;
-                } else {
-                    finalTimerSeconds = timerSeconds;
-                }
-
-                Log.e(TAG, String.valueOf(finalTimerSeconds * 1.666));
-                progressBar.setProgress((int) Math.round(finalTimerSeconds * 1.666));
-            }
-        });
-
+        chronometer.setOnChronometerTickListener(this::updateProgressBar);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    public void startStopTimer(View view, SimpleDateFormat dtf){
-        if(!running && !started){   //If workout has just started
+    private void initializeViews() {
+        chronometer = findViewById(R.id.timer);
+        btnStartStop = findViewById(R.id.btnStart_stop);
+        btnReset = findViewById(R.id.btnReset);
+        btnFinishWorkout = findViewById(R.id.btnFinish);
+        workoutTitle = findViewById(R.id.tvWorkoutList);
+        progressBar = findViewById(R.id.circleProgress);
 
-            chronometer.setBase(SystemClock.elapsedRealtime());
-            chronometer.start();
-            running = true;
-            start_stop.setText("Stop");
-            start_stop.setBackgroundTintList(getResources().getColorStateList(R.color.pastelred));
-            started = true;
-            startTime = new Date();
-            Date st = startTime;
-            Log.i(TAG, String.valueOf(st));
-        }else if(!running && started) { //if workout is getting unpaused
-            chronometer.setBase(SystemClock.elapsedRealtime() - pauseOffset);
-            chronometer.start();
-            running = true;
-            start_stop.setText("Stop");
-            start_stop.setBackgroundTintList(getResources().getColorStateList(R.color.pastelred));
-        }else if(running){  //stops the timer
-            chronometer.stop();
-            pauseOffset = SystemClock.elapsedRealtime() - chronometer.getBase();
-            running = false;
-            long elapsedMili = SystemClock.elapsedRealtime()
-                    - chronometer.getBase();
-            currentTime = Math.round(elapsedMili/1000);
-            start_stop.setText("start");
-            start_stop.setBackgroundTintList(getResources().getColorStateList(R.color.pastelgreen));
+        isRunning = false;
+        isStarted = false;
+    }
 
+    private void setupWorkoutList() {
+        workouts = (List<String>) getIntent().getSerializableExtra("Workout");
+        if (workouts != null) {
+            String workoutDisplayText = String.join(", ", workouts);
+            workoutTitle.setText(workoutDisplayText);
+        } else {
+            Log.e(TAG, "Workout list is null");
         }
     }
 
+    private void toggleTimer() {
+        if (!isStarted) {
+            startTimer();
+        } else if (isRunning) {
+            pauseTimer();
+        } else {
+            resumeTimer();
+        }
+    }
 
-    public void resetTimer(View view){
+    private void startTimer() {
+        chronometer.setBase(SystemClock.elapsedRealtime());
+        chronometer.start();
+        isRunning = true;
+        isStarted = true;
+        updateStartStopButtonState(true);
+        startTime = new Date();
+        Log.i(TAG, "Workout started at: " + startTime);
+    }
+
+    private void pauseTimer() {
+        chronometer.stop();
+        pauseOffset = SystemClock.elapsedRealtime() - chronometer.getBase();
+        isRunning = false;
+        elapsedTimeSeconds = (int) (pauseOffset / 1000);
+        updateStartStopButtonState(false);
+        Log.i(TAG, "Workout paused. Elapsed time: " + elapsedTimeSeconds + " seconds");
+    }
+
+    private void resumeTimer() {
+        chronometer.setBase(SystemClock.elapsedRealtime() - pauseOffset);
+        chronometer.start();
+        isRunning = true;
+        updateStartStopButtonState(true);
+        Log.i(TAG, "Workout resumed");
+    }
+
+    private void updateStartStopButtonState(boolean isRunning) {
+        btnStartStop.setText(isRunning ? "Stop" : "Start");
+        btnStartStop.setBackgroundTintList(getResources().getColorStateList(
+                isRunning ? R.color.pastelred : R.color.pastelgreen
+        ));
+    }
+
+    private void resetTimer() {
         chronometer.setBase(SystemClock.elapsedRealtime());
         pauseOffset = 0;
-        //Toast.makeText(this, "Finished", Toast.LENGTH_SHORT).show();
+        isStarted = false;
+        isRunning = false;
+        progressBar.setProgress(0);
+        btnStartStop.setText("Start");
+        btnStartStop.setBackgroundTintList(getResources().getColorStateList(R.color.pastelgreen));
+        Toast.makeText(this, "Timer reset", Toast.LENGTH_SHORT).show();
+        Log.i(TAG, "Timer reset");
     }
 
-    public void finishWorkout(View view){
-        //https://www.semicolonworld.com/question/46673/android-get-time-of-chronometer-widget
+    private void updateProgressBar(Chronometer chronometer) {
+        long elapsedMillis = SystemClock.elapsedRealtime() - chronometer.getBase();
+        int seconds = (int) (elapsedMillis / 1000) % 60;
+        int progress = Math.round(seconds * 1.666f); // Convert to percentage
+        progressBar.setProgress(progress);
+        Log.d(TAG, "Progress updated to: " + progress + "%");
+    }
 
-        //int seconds = Math.round(time/1000);
-        int seconds;
-        if(!running){
-            seconds = currentTime;
-        }else{
-            //long time = SystemClock.elapsedRealtime() - pauseOffset;
-            //Log.e("workout_timer", String.valueOf(time));
-            long elapsedMillis = SystemClock.elapsedRealtime()
-                    - chronometer.getBase();
-            seconds = Math.round(elapsedMillis/1000);
-
-            Log.e("workout_timer", String.valueOf(seconds));
-
-        }
-
-        if(seconds == 0){
-            Toast.makeText(this, "Workout Not Started!", Toast.LENGTH_SHORT).show();
+    private void finishWorkout() {
+        if (!isStarted) {
+            Toast.makeText(this, "Workout not started!", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        if (!isRunning) {
+            elapsedTimeSeconds = (int) (pauseOffset / 1000);
+        } else {
+            long elapsedMillis = SystemClock.elapsedRealtime() - chronometer.getBase();
+            elapsedTimeSeconds = (int) (elapsedMillis / 1000);
+        }
+
         finishTime = new Date();
-        Log.i(TAG, String.valueOf(finishTime));
+        Log.i(TAG, "Workout finished at: " + finishTime);
 
-        Intent i = new Intent(this, workout_summary.class);
-        i.putExtra("Workout2", (Serializable) workouts);
-        i.putExtra("finalTime", seconds);
-        i.putExtra("startTime",(Serializable) startTime);
-        i.putExtra("finishTime",(Serializable) finishTime);
-        startActivity(i);
+        Intent intent = new Intent(this, workout_summary.class);
+        intent.putExtra("WorkoutList", (Serializable) workouts);
+        intent.putExtra("ElapsedTime", elapsedTimeSeconds);
+        intent.putExtra("StartTime", startTime);
+        intent.putExtra("FinishTime", finishTime);
+        startActivity(intent);
         Animatoo.animateSlideLeft(this);
-
-        //Toast.makeText(this, "Elapsed seconds: " + seconds, Toast.LENGTH_SHORT).show();
-
-
     }
 
     @Override
-    public void onBackPressed(){
+    public void onBackPressed() {
         super.onBackPressed();
         Animatoo.animateSlideRight(this);
     }
