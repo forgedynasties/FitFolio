@@ -2,52 +2,76 @@ package edu.csueb.codepath.fitness_tracker;
 
 import com.parse.ParseClassName;
 import com.parse.ParseObject;
+import com.parse.ParseException;
 
-import java.sql.Date;
+import java.util.Date;
 
 @ParseClassName("Workout")
 public class workoutObject extends ParseObject {
 
-    private String objectID;
-    private Date start;
-    private Date end;
-    private int calories;
-    private String duration;
-    private String WorkoutType;
+    // Default constructor
+    public workoutObject() { }
 
-    public workoutObject(){ }
-
-    public void setDates(Date s, Date e){
-        start = s;
-        end = e;
+    // Parameterized constructor
+    public workoutObject(Date start, Date end, int calories, String duration, String workoutType) {
+        setStart(start);
+        setEnd(end);
+        setCalories(calories);
+        setDuration(duration);
+        setWorkoutType(workoutType);
     }
 
-    public void setCalories(int cal){
-        calories = cal;
+    // Setters
+    public void setStart(Date start) {
+        put("start", start);
     }
 
-    public void setDuration(String dur){
-        duration = dur;
-    }
-    public void setWorkoutType(String wt){
-        WorkoutType = wt;
+    public void setEnd(Date end) {
+        put("end", end);
     }
 
-    public Date getStart(){return start;}
+    public void setCalories(int calories) {
+        put("calories", calories);
+    }
+
+    public void setDuration(String duration) {
+        put("duration", duration);
+    }
+
+    public void setWorkoutType(String workoutType) {
+        put("workoutType", workoutType);
+    }
+
+    // Getters
+    public Date getStart() {
+        return getDate("start");
+    }
 
     public Date getEnd() {
-        return end;
+        return getDate("end");
     }
 
     public int getCalories() {
-        return calories;
+        return getInt("calories");
     }
 
     public String getDuration() {
-        return duration;
+        return getString("duration");
     }
 
     public String getWorkoutType() {
-        return WorkoutType;
+        return getString("workoutType");
+    }
+
+    // toString for debugging/logging
+    @Override
+    public String toString() {
+        return "WorkoutObject{" +
+                "start=" + getStart() +
+                ", end=" + getEnd() +
+                ", calories=" + getCalories() +
+                ", duration='" + getDuration() + '\'' +
+                ", workoutType='" + getWorkoutType() + '\'' +
+                '}';
     }
 }
