@@ -6,6 +6,7 @@
     tools:context=".fragments.TrackFragment">
 
     <!-- TODO: Update blank fragment layout -->
+
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
@@ -42,6 +43,11 @@
         android:layout_marginBottom="10dp"
         android:elevation="4dp"
         android:text="START" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardWorkoutHome"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
 
 </RelativeLayout>
